@@ -1,0 +1,5 @@
+{
+  "buildCommand": "cd slideshow-app && npm install && npm run build",
+  "outputDirectory": "slideshow-app/dist",
+  "framework": "vite"
+}
