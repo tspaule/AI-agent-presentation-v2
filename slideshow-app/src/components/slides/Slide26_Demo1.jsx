@@ -1,57 +1,113 @@
 import { motion } from 'framer-motion';
 import SlideShell from '../SlideShell';
 import { FadeUp, StaggerChildren, StaggerItem } from '../AnimatedText';
+import { MessageSquare, Code, Layout, Globe, ArrowRight } from 'lucide-react';
 
 const steps = [
-  { num: '1', title: 'Write the Intent', desc: 'Create a prototype spec and requirements in GitHub', color: 'border-blue-500/20 from-blue-500/8' },
-  { num: '2', title: 'Point the Agent', desc: 'Tell Claude Code to build from the spec', color: 'border-purple-500/20 from-purple-500/8' },
-  { num: '3', title: 'Watch It Work', desc: 'Chain of thought, to-do list, tool calling in real time', color: 'border-cyan-500/20 from-cyan-500/8' },
-  { num: '4', title: 'Wake Up to Results', desc: '26,000 lines of code written overnight', color: 'border-amber-500/20 from-amber-500/8' },
+  {
+    icon: MessageSquare,
+    title: 'Prompt',
+    desc: 'Write a detailed spec with intent and requirements',
+    color: 'text-amber-400',
+    border: 'border-amber-500/20 from-amber-500/8',
+  },
+  {
+    icon: Code,
+    title: 'Claude Code',
+    desc: 'Agent builds React components, styles, animations',
+    color: 'text-orange-400',
+    border: 'border-orange-500/20 from-orange-500/8',
+  },
+  {
+    icon: Layout,
+    title: 'React App',
+    desc: '35 slides, custom UI library, framer-motion throughout',
+    color: 'text-red-400',
+    border: 'border-red-500/20 from-red-500/8',
+  },
+  {
+    icon: Globe,
+    title: 'Deployed',
+    desc: 'Live on Vercel, presenting to you right now',
+    color: 'text-rose-400',
+    border: 'border-rose-500/20 from-rose-500/8',
+  },
 ];
 
 export default function Slide26_Demo1() {
   return (
-    <SlideShell bg="blue">
+    <SlideShell bg="warm" sectionLabel="DEMO 1">
       <FadeUp>
-        <div className="flex items-center gap-3 mb-2">
-          <span className="text-xs tracking-[0.2em] uppercase text-blue-400/60 font-semibold px-3 py-1 rounded-full border border-blue-500/20">Demo 1</span>
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
-            Claude <span className="text-gradient-blue">Code</span>
-          </h2>
+        <div className="flex items-center gap-4 mb-2">
+          <span className="text-xs tracking-[0.2em] uppercase text-amber-400/60 font-semibold px-3 py-1 rounded-full border border-amber-500/20 bg-amber-500/5">
+            Demo 1
+          </span>
         </div>
-        <p className="text-base text-white/35 mb-8">Chain of thought, to-dos, and skills in action.</p>
+        <h2 className="text-5xl md:text-6xl font-black tracking-tight mb-3">
+          This <span className="text-gradient-warm">Presentation</span>
+        </h2>
+        <p className="text-lg text-white/40 font-light mb-10">
+          Built entirely by AI agents. Every slide you've seen tonight.
+        </p>
       </FadeUp>
 
-      <StaggerChildren stagger={0.12} className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mb-8">
-        {steps.map((step) => (
-          <StaggerItem key={step.num}>
-            <div className={`glass rounded-xl p-5 border ${step.color} bg-gradient-to-b to-transparent h-full`}>
-              <span className="text-2xl font-black text-white/15 mb-2 block">{step.num}</span>
-              <h3 className="text-sm font-bold text-white/90 mb-2">{step.title}</h3>
-              <p className="text-xs text-white/35">{step.desc}</p>
-            </div>
-          </StaggerItem>
-        ))}
-      </StaggerChildren>
-
-      <FadeUp delay={0.7}>
-        <div className="flex items-center gap-8 max-w-5xl">
+      {/* Step flow */}
+      <div className="flex items-stretch gap-2 max-w-5xl w-full mb-10">
+        {steps.map((step, i) => (
           <motion.div
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.8, duration: 0.6, type: 'spring' }}
-            className="shrink-0"
+            key={step.title}
+            initial={{ opacity: 0, y: 25, filter: 'blur(6px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            transition={{ delay: 0.3 + i * 0.15, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="flex items-center gap-2 flex-1"
           >
-            <div className="text-5xl font-black text-gradient-blue">26,000</div>
-            <div className="text-xs text-white/30 mt-1">lines of code written overnight</div>
+            <div className={`glass rounded-xl p-5 border ${step.border} bg-gradient-to-b to-transparent flex-1 h-full`}>
+              <step.icon className={`w-6 h-6 ${step.color} mb-3`} />
+              <h3 className="text-sm font-bold text-white/90 mb-1">{step.title}</h3>
+              <p className="text-[11px] text-white/35 leading-relaxed">{step.desc}</p>
+            </div>
+            {i < steps.length - 1 && (
+              <motion.div
+                initial={{ opacity: 0, x: -5 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.6 + i * 0.15 }}
+              >
+                <ArrowRight className="w-4 h-4 text-white/15 shrink-0" />
+              </motion.div>
+            )}
           </motion.div>
-          <div className="glass rounded-xl p-4 flex-1 border-l-2 border-blue-500/30">
-            <p className="text-sm text-white/45 italic">
-              "I didn't write the code. I wrote the intent. The agent figured out the rest."
-            </p>
+        ))}
+      </div>
+
+      {/* Stats + live badge */}
+      <div className="flex items-center gap-6 max-w-5xl">
+        <FadeUp delay={0.9}>
+          <div className="flex items-center gap-8">
+            <div>
+              <div className="text-4xl font-black text-gradient-warm">26,000</div>
+              <div className="text-[10px] text-white/25 mt-1 uppercase tracking-wider">Lines of code</div>
+            </div>
+            <div className="w-px h-10 bg-white/10" />
+            <div>
+              <div className="text-4xl font-black text-gradient-warm">1</div>
+              <div className="text-[10px] text-white/25 mt-1 uppercase tracking-wider">Night to build</div>
+            </div>
           </div>
-        </div>
-      </FadeUp>
+        </FadeUp>
+
+        <div className="flex-1" />
+
+        <FadeUp delay={1.1}>
+          <div className="glass-strong rounded-xl px-5 py-3 inline-flex items-center gap-3 border border-amber-500/20">
+            <motion.div
+              animate={{ scale: [1, 1.3, 1], opacity: [1, 0.6, 1] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+              className="w-2 h-2 rounded-full bg-amber-400"
+            />
+            <span className="text-sm font-semibold text-amber-300/80">LIVE DEMO</span>
+          </div>
+        </FadeUp>
+      </div>
     </SlideShell>
   );
 }

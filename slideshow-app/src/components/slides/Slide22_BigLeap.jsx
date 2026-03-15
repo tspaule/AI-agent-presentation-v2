@@ -1,82 +1,117 @@
-import { motion } from 'framer-motion';
-import { FadeUp, SlideIn } from '../AnimatedText';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { FadeUp, BlurIn } from '../AnimatedText';
+import Aurora from '../ui/Aurora';
+
+const chatbotWords = ['respond', 'wait', 'suggest'];
+const agentWords = ['execute', 'decide', 'adapt', 'learn'];
+
+function CyclingWord({ words, interval = 2000, className = '' }) {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setIndex((prev) => (prev + 1) % words.length);
+    }, interval);
+    return () => clearInterval(timer);
+  }, [words, interval]);
+
+  return (
+    <span className={`inline-block relative ${className}`}>
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={words[index]}
+          initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          exit={{ opacity: 0, y: -20, filter: 'blur(8px)' }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className="inline-block"
+        >
+          {words[index]}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  );
+}
 
 export default function Slide22_BigLeap() {
   return (
-    <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-dark-950">
-      <motion.div
-        animate={{ x: [0, 20, 0], y: [0, -15, 0] }}
-        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute top-1/3 left-1/4 w-[400px] h-[400px] rounded-full bg-red-500/5 blur-[120px]"
-      />
-      <motion.div
-        animate={{ x: [0, -20, 0], y: [0, 20, 0] }}
-        transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute bottom-1/3 right-1/4 w-[400px] h-[400px] rounded-full bg-blue-500/5 blur-[120px]"
+    <div className="relative w-full h-full bg-black overflow-hidden flex items-center justify-center">
+      {/* Aurora background */}
+      <Aurora
+        colors={['#3b82f6', '#06b6d4', '#1e40af']}
+        speed={0.6}
+        blur={100}
+        className="opacity-60"
       />
 
-      <div className="relative z-10 max-w-6xl mx-auto px-8 w-full">
-        <FadeUp>
-          <h2 className="text-5xl md:text-6xl font-black tracking-tight mb-3 text-center">
-            The Big <span className="text-gradient-blue">Leap</span>
-          </h2>
-          <p className="text-base text-white/30 text-center mb-12">From Chatbots to Agents</p>
+      {/* Noise */}
+      <div className="noise absolute inset-0 pointer-events-none z-[2]" />
+      {/* Vignette */}
+      <div className="vignette absolute inset-0 pointer-events-none z-[2]" />
+
+      {/* Content */}
+      <div className="relative z-10 text-center max-w-5xl mx-auto px-8">
+        <FadeUp delay={0.1}>
+          <p className="text-xs tracking-[0.5em] uppercase text-blue-400/30 font-semibold mb-8">
+            The conceptual shift
+          </p>
         </FadeUp>
 
-        <div className="grid grid-cols-[1fr_auto_1fr] gap-6 items-center">
-          <SlideIn from="left" delay={0.3}>
-            <div className="glass rounded-2xl p-8 border border-red-500/10 bg-gradient-to-br from-red-500/5 to-transparent text-center">
-              <div className="text-xs tracking-[0.25em] uppercase text-red-400/50 font-semibold mb-6">Chatbot Era</div>
-              <div className="space-y-2 mb-6">
-                {['Question → Answer', 'Question → Answer', 'Question → Answer'].map((line, i) => (
-                  <motion.p
-                    key={i}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 0.4 }}
-                    transition={{ delay: 0.5 + i * 0.15 }}
-                    className="text-sm text-white/40 font-mono"
-                  >{line}</motion.p>
-                ))}
-              </div>
-              <p className="text-sm text-red-300/50 font-medium">You are the glue.</p>
-            </div>
-          </SlideIn>
+        <BlurIn delay={0.3}>
+          <h1 className="text-6xl md:text-7xl lg:text-8xl font-black tracking-tight mb-10">
+            The Big <span className="text-gradient-blue">Leap</span>
+          </h1>
+        </BlurIn>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.6, duration: 0.5 }}
-            className="text-4xl text-blue-400/60 animate-bounce-right"
-          >
-            →
-          </motion.div>
-
-          <SlideIn from="right" delay={0.5}>
-            <div className="glass rounded-2xl p-8 border border-blue-500/20 bg-gradient-to-br from-blue-500/8 to-cyan-500/5 text-center glow-blue">
-              <div className="text-xs tracking-[0.25em] uppercase text-blue-400 font-semibold mb-6">Agent Era</div>
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.7 }}
-                className="text-sm text-blue-200/70 font-mono mb-6"
-              >
-                Goal → Plan → Act → Iterate → Deliver
-              </motion.p>
-              <div className="space-y-1">
-                <p className="text-xs text-white/40">Multi-step workflows.</p>
-                <p className="text-xs text-white/40">No human in the loop.</p>
-                <p className="text-xs text-blue-300/60 font-medium">End-to-end execution.</p>
-              </div>
+        {/* Two-line morphing comparison */}
+        <div className="space-y-6 mb-12">
+          <FadeUp delay={0.7}>
+            <div className="flex items-center justify-center gap-4">
+              <span className="text-2xl md:text-3xl text-white/25 font-light">Chatbots</span>
+              <span className="text-2xl md:text-3xl font-bold text-white/30">
+                <CyclingWord words={chatbotWords} interval={2200} className="text-white/25 min-w-[140px]" />
+              </span>
             </div>
-          </SlideIn>
+          </FadeUp>
+
+          <FadeUp delay={0.9}>
+            <motion.div
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ delay: 1.1, duration: 0.6 }}
+              className="h-px w-48 mx-auto bg-gradient-to-r from-transparent via-blue-500/30 to-transparent"
+            />
+          </FadeUp>
+
+          <FadeUp delay={1.1}>
+            <div className="flex items-center justify-center gap-4">
+              <span className="text-3xl md:text-4xl text-blue-300/80 font-bold">Agents</span>
+              <span className="text-3xl md:text-4xl font-black">
+                <CyclingWord
+                  words={agentWords}
+                  interval={1800}
+                  className="text-gradient-blue min-w-[140px]"
+                />
+              </span>
+            </div>
+          </FadeUp>
         </div>
 
-        <FadeUp delay={0.9}>
-          <p className="text-center text-sm text-white/25 mt-8 italic">
-            You used to jockey the system. Now the system runs itself.
+        <FadeUp delay={1.5}>
+          <p className="text-xl md:text-2xl text-white/20 font-light">
+            Chatbots respond. Agents <span className="text-blue-300/60 font-semibold">act</span>.
           </p>
         </FadeUp>
       </div>
+
+      {/* Bottom accent */}
+      <motion.div
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: 1 }}
+        transition={{ duration: 1.5, delay: 1.8, ease: [0.22, 1, 0.36, 1] }}
+        className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent"
+      />
     </div>
   );
 }

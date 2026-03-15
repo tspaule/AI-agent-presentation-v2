@@ -1,38 +1,84 @@
+import { motion } from 'framer-motion';
 import SlideShell from '../SlideShell';
 import { FadeUp, StaggerChildren, StaggerItem } from '../AnimatedText';
+import DotPattern from '../ui/DotPattern';
 
 const items = [
-  { num: '01', title: 'Your Feedback', desc: 'What you told us in the survey — and how it shaped tonight', color: 'text-blue-400', border: 'border-blue-500/20', bg: 'from-blue-500/5' },
-  { num: '02', title: 'The Theory', desc: 'WTF are AI Agents? The seven building blocks explained', color: 'text-purple-400', border: 'border-purple-500/20', bg: 'from-purple-500/5' },
-  { num: '03', title: 'The Practice', desc: 'Live demos — Claude Code, Claude Cowork, and JackalBot in action', color: 'text-cyan-400', border: 'border-cyan-500/20', bg: 'from-cyan-500/5' },
-  { num: '04', title: 'Questions & Discussion', desc: 'Open floor — nothing is off limits', color: 'text-amber-400', border: 'border-amber-500/20', bg: 'from-amber-500/5' },
+  {
+    num: '01',
+    title: 'Quick Survey',
+    desc: 'Where is everyone at?',
+    gradient: 'text-gradient-purple',
+    lineColor: 'rgba(139,92,246,0.25)',
+  },
+  {
+    num: '02',
+    title: 'The Theory',
+    desc: 'Seven building blocks of every agent',
+    gradient: 'text-gradient-blue',
+    lineColor: 'rgba(59,130,246,0.25)',
+  },
+  {
+    num: '03',
+    title: 'Live Demos',
+    desc: 'Three real agents in action',
+    gradient: 'text-gradient-warm',
+    lineColor: 'rgba(245,158,11,0.25)',
+  },
+  {
+    num: '04',
+    title: 'The Future',
+    desc: 'From doers to instructors',
+    gradient: 'text-gradient-emerald',
+    lineColor: 'rgba(16,185,129,0.25)',
+  },
 ];
 
 export default function Slide03_Agenda() {
   return (
-    <SlideShell bg="gradient">
-      <FadeUp>
-        <h2 className="text-5xl md:text-6xl font-bold tracking-tight mb-10">
-          Tonight's <span className="text-gradient-purple">Agenda</span>
-        </h2>
-      </FadeUp>
+    <SlideShell bg="default" sectionLabel="TONIGHT">
+      {/* Dot pattern background */}
+      <DotPattern spacing={35} radius={0.8} color="rgba(255,255,255,0.04)" />
 
-      <StaggerChildren stagger={0.12} className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-5xl">
-        {items.map((item) => (
-          <StaggerItem key={item.num}>
-            <div className={`glass rounded-xl p-6 border ${item.border} relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300`}>
-              <div className={`absolute inset-0 bg-gradient-to-br ${item.bg} to-transparent opacity-0 group-hover:opacity-100 transition-opacity`} />
-              <div className="relative flex gap-5">
-                <span className={`text-3xl font-black ${item.color} opacity-40`}>{item.num}</span>
-                <div>
-                  <h3 className="text-xl font-bold text-white/90 mb-1">{item.title}</h3>
-                  <p className="text-sm text-white/40 leading-relaxed">{item.desc}</p>
+      <div className="relative z-10 w-full">
+        <FadeUp>
+          <h2 className="text-6xl md:text-7xl font-black tracking-tight mb-16">
+            The <span className="text-gradient-purple">Roadmap</span>
+          </h2>
+        </FadeUp>
+
+        <StaggerChildren stagger={0.12} className="flex flex-col gap-0 max-w-3xl">
+          {items.map((item, i) => (
+            <StaggerItem key={item.num}>
+              <div className="flex items-start gap-8 group">
+                {/* Number column with connecting line */}
+                <div className="flex flex-col items-center flex-shrink-0">
+                  <span className={`text-5xl font-black ${item.gradient} opacity-70 leading-none`}>
+                    {item.num}
+                  </span>
+                  {i < items.length - 1 && (
+                    <motion.div
+                      initial={{ scaleY: 0 }}
+                      animate={{ scaleY: 1 }}
+                      transition={{ duration: 0.6, delay: 0.4 + i * 0.15, ease: [0.16, 1, 0.3, 1] }}
+                      className="w-[1px] h-10 mt-3"
+                      style={{ background: item.lineColor, transformOrigin: 'top center' }}
+                    />
+                  )}
+                </div>
+
+                {/* Text content */}
+                <div className="pt-1 pb-6">
+                  <h3 className="text-2xl font-bold text-white/90 mb-1 group-hover:text-white transition-colors">
+                    {item.title}
+                  </h3>
+                  <p className="text-base text-white/35 font-light">{item.desc}</p>
                 </div>
               </div>
-            </div>
-          </StaggerItem>
-        ))}
-      </StaggerChildren>
+            </StaggerItem>
+          ))}
+        </StaggerChildren>
+      </div>
     </SlideShell>
   );
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import Slide01_Title from './components/slides/Slide01_Title';
@@ -37,6 +37,9 @@ import Slide33_DoersToInstructors from './components/slides/Slide33_DoersToInstr
 import Slide34_Quote from './components/slides/Slide34_Quote';
 import Slide35_ThankYou from './components/slides/Slide35_ThankYou';
 
+// ---------------------------------------------------------------------------
+// Slide registry
+// ---------------------------------------------------------------------------
 const slides = [
   Slide01_Title,
   Slide02_WhyHere,
@@ -75,101 +78,282 @@ const slides = [
   Slide35_ThankYou,
 ];
 
+// ---------------------------------------------------------------------------
+// Section definitions
+// ---------------------------------------------------------------------------
+const sections = [
+  { name: 'INTRO', range: [0, 3], color: '#3b82f6' },
+  { name: 'SURVEY', range: [4, 8], color: '#8b5cf6' },
+  { name: 'THEORY', range: [9, 22], color: '#06b6d4' },
+  { name: 'DEMOS', range: [23, 30], color: '#f59e0b' },
+  { name: 'CLOSING', range: [31, 34], color: '#ef4444' },
+];
+
+function getSectionIndex(slideIndex) {
+  return sections.findIndex(
+    (s) => slideIndex >= s.range[0] && slideIndex <= s.range[1],
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Cinematic transition variants
+// ---------------------------------------------------------------------------
+const cinematicEase = [0.22, 1, 0.36, 1];
+
 const slideVariants = {
-  enter: (direction) => ({
-    x: direction > 0 ? '100%' : '-100%',
+  enter: {
     opacity: 0,
-  }),
-  center: {
-    x: 0,
-    opacity: 1,
+    scale: 0.96,
+    filter: 'blur(10px)',
   },
-  exit: (direction) => ({
-    x: direction < 0 ? '100%' : '-100%',
+  center: {
+    opacity: 1,
+    scale: 1,
+    filter: 'blur(0px)',
+  },
+  exit: {
     opacity: 0,
-  }),
+    scale: 1.04,
+    filter: 'blur(10px)',
+  },
 };
 
+const slideTransition = {
+  duration: 0.5,
+  ease: cinematicEase,
+};
+
+// ---------------------------------------------------------------------------
+// Drag helpers
+// ---------------------------------------------------------------------------
 const swipeConfidenceThreshold = 10000;
 const swipePower = (offset, velocity) => Math.abs(offset) * velocity;
 
-function SlideNavigator({ isOpen, current, total, onGoTo, onClose }) {
-  if (!isOpen) return null;
+// ---------------------------------------------------------------------------
+// Segmented Progress Indicator
+// ---------------------------------------------------------------------------
+function ProgressIndicator({ current, total, visible }) {
+  const sectionIdx = getSectionIndex(current);
 
+  return (
+    <motion.div
+      animate={{ opacity: visible ? 1 : 0 }}
+      transition={{ duration: 0.3 }}
+      className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-3"
+    >
+      {/* Dots with connecting line */}
+      <div className="relative flex items-center gap-0">
+        {sections.map((section, i) => {
+          const isActive = i === sectionIdx;
+          const isPast = i < sectionIdx;
+          return (
+            <div key={section.name} className="flex items-center">
+              {/* Connecting line (before dot, skip for first) */}
+              {i > 0 && (
+                <div
+                  className="h-[1px] transition-all duration-500"
+                  style={{
+                    width: 28,
+                    backgroundColor: isPast || isActive
+                      ? `${section.color}66`
+                      : 'rgba(255,255,255,0.08)',
+                  }}
+                />
+              )}
+              {/* Dot */}
+              <motion.div
+                animate={{
+                  width: isActive ? 10 : 6,
+                  height: isActive ? 10 : 6,
+                  backgroundColor: isActive
+                    ? section.color
+                    : isPast
+                      ? `${section.color}99`
+                      : 'rgba(255,255,255,0.15)',
+                  boxShadow: isActive
+                    ? `0 0 10px ${section.color}80`
+                    : '0 0 0px transparent',
+                }}
+                transition={{ duration: 0.4, ease: cinematicEase }}
+                className="rounded-full flex-shrink-0"
+                title={section.name}
+              />
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Slide counter */}
+      <span
+        className="font-mono text-[11px] tracking-widest"
+        style={{
+          color: sections[sectionIdx]?.color ?? 'rgba(255,255,255,0.25)',
+          opacity: 0.7,
+        }}
+      >
+        {String(current + 1).padStart(2, '0')}
+        <span style={{ opacity: 0.35 }}> / </span>
+        {String(total).padStart(2, '0')}
+      </span>
+    </motion.div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Premium Slide Navigator (press G)
+// ---------------------------------------------------------------------------
+function SlideNavigator({ current, onGoTo, onClose }) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 bg-dark-950/95 backdrop-blur-xl flex flex-col"
+      transition={{ duration: 0.25 }}
+      className="fixed inset-0 z-50 flex flex-col"
+      style={{ backgroundColor: 'rgba(5,5,10,0.92)' }}
       onClick={onClose}
     >
-      <div className="flex items-center justify-between px-8 py-5 border-b border-white/5">
-        <h3 className="text-sm font-semibold text-white/60">Slide Navigator</h3>
-        <button
-          onClick={onClose}
-          className="text-white/40 hover:text-white/80 text-sm transition-colors"
-        >
-          Press ESC to close
-        </button>
-      </div>
-      <div
-        className="flex-1 overflow-y-auto p-8 grid grid-cols-5 gap-4"
-        onClick={(e) => e.stopPropagation()}
+      {/* Blur layer */}
+      <div className="absolute inset-0 backdrop-blur-2xl" />
+
+      {/* Content */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.3, ease: cinematicEase }}
+        className="relative flex flex-col h-full"
       >
-        {Array.from({ length: total }).map((_, i) => (
+        {/* Header */}
+        <div className="flex items-center justify-between px-8 py-5 border-b border-white/5">
+          <h3 className="text-sm font-semibold text-white/60 tracking-wide">
+            Slide Navigator
+          </h3>
           <button
-            key={i}
-            onClick={() => { onGoTo(i); onClose(); }}
-            className={`aspect-video rounded-lg border transition-all duration-200 flex items-center justify-center text-sm font-mono hover:scale-105 ${
-              i === current
-                ? 'border-blue-500/50 bg-blue-500/10 text-blue-400'
-                : 'border-white/5 bg-white/[0.02] text-white/30 hover:border-white/15 hover:text-white/50'
-            }`}
+            onClick={onClose}
+            className="text-white/30 hover:text-white/70 text-xs transition-colors font-mono"
           >
-            {i + 1}
+            ESC to close
           </button>
-        ))}
-      </div>
+        </div>
+
+        {/* Grid grouped by section */}
+        <div
+          className="flex-1 overflow-y-auto px-8 py-6 space-y-8"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {sections.map((section) => {
+            const slideIndices = [];
+            for (let i = section.range[0]; i <= section.range[1]; i++) {
+              slideIndices.push(i);
+            }
+            return (
+              <div key={section.name}>
+                {/* Section header */}
+                <div className="flex items-center gap-3 mb-3">
+                  <div
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: section.color }}
+                  />
+                  <span
+                    className="text-xs font-semibold tracking-[0.2em] uppercase"
+                    style={{ color: `${section.color}cc` }}
+                  >
+                    {section.name}
+                  </span>
+                  <div className="flex-1 h-px" style={{ backgroundColor: `${section.color}15` }} />
+                </div>
+
+                {/* Slide thumbnails */}
+                <div className="grid grid-cols-5 lg:grid-cols-7 gap-3">
+                  {slideIndices.map((i) => {
+                    const isCurrent = i === current;
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => {
+                          onGoTo(i);
+                          onClose();
+                        }}
+                        className="group relative aspect-video rounded-lg overflow-hidden transition-all duration-200 hover:scale-105"
+                        style={{
+                          borderLeft: `3px solid ${section.color}`,
+                          backgroundColor: isCurrent
+                            ? `${section.color}15`
+                            : 'rgba(255,255,255,0.02)',
+                          border: isCurrent
+                            ? `1px solid ${section.color}50`
+                            : '1px solid rgba(255,255,255,0.05)',
+                          borderLeftWidth: 3,
+                          borderLeftColor: section.color,
+                        }}
+                      >
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span
+                            className="font-mono text-sm transition-colors duration-200"
+                            style={{
+                              color: isCurrent
+                                ? section.color
+                                : 'rgba(255,255,255,0.3)',
+                            }}
+                          >
+                            {String(i + 1).padStart(2, '0')}
+                          </span>
+                        </div>
+                        {/* Hover glow */}
+                        <div
+                          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                          style={{
+                            background: `radial-gradient(circle at center, ${section.color}10 0%, transparent 70%)`,
+                          }}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </motion.div>
     </motion.div>
   );
 }
 
+// ---------------------------------------------------------------------------
+// App
+// ---------------------------------------------------------------------------
 export default function App() {
   const [current, setCurrent] = useState(0);
-  const [direction, setDirection] = useState(0);
   const [navOpen, setNavOpen] = useState(false);
   const [showUI, setShowUI] = useState(true);
   const hideTimerRef = useRef(null);
 
   const total = slides.length;
 
-  const goTo = useCallback((index) => {
-    if (index >= 0 && index < total && index !== current) {
-      setDirection(index > current ? 1 : -1);
-      setCurrent(index);
-    }
-  }, [current, total]);
+  // Navigation helpers
+  const goTo = useCallback(
+    (index) => {
+      if (index >= 0 && index < total && index !== current) {
+        setCurrent(index);
+      }
+    },
+    [current, total],
+  );
 
   const next = useCallback(() => {
-    if (current < total - 1) {
-      setDirection(1);
-      setCurrent(c => c + 1);
-    }
+    if (current < total - 1) setCurrent((c) => c + 1);
   }, [current, total]);
 
   const prev = useCallback(() => {
-    if (current > 0) {
-      setDirection(-1);
-      setCurrent(c => c - 1);
-    }
+    if (current > 0) setCurrent((c) => c - 1);
   }, [current]);
 
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (navOpen && e.key === 'Escape') {
-        setNavOpen(false);
+      if (e.key === 'Escape') {
+        if (navOpen) setNavOpen(false);
         return;
       }
       if (navOpen) return;
@@ -213,7 +397,7 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [next, prev, goTo, total, navOpen]);
 
-  // Auto-hide UI
+  // Auto-hide UI after 3s of no mouse movement
   useEffect(() => {
     const handleMouseMove = () => {
       setShowUI(true);
@@ -231,33 +415,25 @@ export default function App() {
   }, []);
 
   const CurrentSlide = slides[current];
-  const progress = ((current + 1) / total) * 100;
 
   return (
     <div className="w-screen h-screen overflow-hidden bg-dark-950 relative select-none">
-      {/* Slide content */}
-      <AnimatePresence initial={false} custom={direction} mode="wait">
+      {/* ---- Cinematic slide content ---- */}
+      <AnimatePresence mode="wait">
         <motion.div
           key={current}
-          custom={direction}
           variants={slideVariants}
           initial="enter"
           animate="center"
           exit="exit"
-          transition={{
-            x: { type: 'spring', stiffness: 300, damping: 30 },
-            opacity: { duration: 0.2 },
-          }}
+          transition={slideTransition}
           drag="x"
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={1}
           onDragEnd={(e, { offset, velocity }) => {
             const swipe = swipePower(offset.x, velocity.x);
-            if (swipe < -swipeConfidenceThreshold) {
-              next();
-            } else if (swipe > swipeConfidenceThreshold) {
-              prev();
-            }
+            if (swipe < -swipeConfidenceThreshold) next();
+            else if (swipe > swipeConfidenceThreshold) prev();
           }}
           className="absolute inset-0"
         >
@@ -265,7 +441,7 @@ export default function App() {
         </motion.div>
       </AnimatePresence>
 
-      {/* Click zones for navigation */}
+      {/* ---- Click zones ---- */}
       <div
         className="absolute left-0 top-0 w-1/5 h-full z-20 cursor-w-resize"
         onClick={prev}
@@ -275,56 +451,29 @@ export default function App() {
         onClick={next}
       />
 
-      {/* Progress bar */}
-      <motion.div
-        animate={{ opacity: showUI ? 1 : 0 }}
-        transition={{ duration: 0.3 }}
-        className="absolute bottom-0 left-0 right-0 z-30"
-      >
-        <div className="h-[3px] bg-white/[0.03]">
-          <motion.div
-            className="h-full bg-gradient-to-r from-blue-500 to-cyan-400"
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          />
-        </div>
-      </motion.div>
+      {/* ---- Segmented progress indicator ---- */}
+      <ProgressIndicator current={current} total={total} visible={showUI} />
 
-      {/* Slide counter & controls */}
-      <motion.div
-        animate={{ opacity: showUI ? 1 : 0 }}
-        transition={{ duration: 0.3 }}
-        className="absolute bottom-4 right-6 z-30 flex items-center gap-4"
-      >
-        <button
-          onClick={() => setNavOpen(true)}
-          className="text-[11px] text-white/20 hover:text-white/50 transition-colors font-mono"
-          title="Press G for slide navigator"
-        >
-          <span className="slide-number">{String(current + 1).padStart(2, '0')}</span>
-          <span className="text-white/10"> / </span>
-          <span className="slide-number">{String(total).padStart(2, '0')}</span>
-        </button>
-      </motion.div>
-
-      {/* Keyboard hints */}
+      {/* ---- Keyboard hints ---- */}
       <motion.div
         animate={{ opacity: showUI ? 1 : 0 }}
         transition={{ duration: 0.3 }}
         className="absolute bottom-4 left-6 z-30 flex items-center gap-3"
       >
         <span className="text-[10px] text-white/10">
-          ← → navigate &nbsp; G grid &nbsp; F fullscreen
+          {'← → navigate'}
+          &nbsp;&nbsp;
+          {'G grid'}
+          &nbsp;&nbsp;
+          {'F fullscreen'}
         </span>
       </motion.div>
 
-      {/* Slide Navigator Overlay */}
+      {/* ---- Slide Navigator Overlay ---- */}
       <AnimatePresence>
         {navOpen && (
           <SlideNavigator
-            isOpen={navOpen}
             current={current}
-            total={total}
             onGoTo={goTo}
             onClose={() => setNavOpen(false)}
           />

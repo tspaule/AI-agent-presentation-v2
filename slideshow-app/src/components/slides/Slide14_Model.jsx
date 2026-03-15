@@ -1,50 +1,62 @@
+import { motion } from 'framer-motion';
 import SlideShell from '../SlideShell';
-import { FadeUp, StaggerChildren, StaggerItem, SlideIn } from '../AnimatedText';
+import { FadeUp, StaggerChildren, StaggerItem } from '../AnimatedText';
+import { Brain } from 'lucide-react';
+import Particles from '../ui/Particles';
 
-const models = [
-  { tier: 'HIGH', name: 'Claude Opus', desc: 'Heavy lifting', detail: 'Complex financial analysis, multi-step reasoning', color: 'from-purple-500/15 to-purple-600/5', border: 'border-purple-500/20', text: 'text-purple-400', barW: 'w-full' },
-  { tier: 'MID', name: 'Claude Sonnet', desc: 'Everyday workhorse', detail: 'Code generation, reports, general business tasks', color: 'from-blue-500/15 to-blue-600/5', border: 'border-blue-500/20', text: 'text-blue-400', barW: 'w-2/3' },
-  { tier: 'LIGHT', name: 'Claude Haiku', desc: 'Fast & cheap', detail: 'Simple categorization, quick classification', color: 'from-cyan-500/15 to-cyan-600/5', border: 'border-cyan-500/20', text: 'text-cyan-400', barW: 'w-1/3' },
+const points = [
+  { title: 'The reasoning engine', desc: 'Takes in information, reasons about it, and decides what to do next.' },
+  { title: 'GPT-4, Claude, Gemini, Llama', desc: 'Different brains for different jobs. Match capability to the task.' },
+  { title: 'Chooses what to do next', desc: 'Not following a script — actively deciding the best action at each step.' },
+  { title: 'Not just chat — decision-making', desc: 'The shift from answering questions to taking autonomous action.' },
 ];
 
 export default function Slide14_Model() {
   return (
-    <SlideShell bg="purple">
-      <FadeUp>
-        <div className="flex items-baseline gap-4 mb-2">
-          <span className="text-5xl font-black text-blue-500/30">1</span>
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
-            Model — <span className="text-gradient-purple">The Brain</span>
-          </h2>
-        </div>
-        <p className="text-base text-white/35 mb-4">The underlying AI that reasons, generates, and makes decisions.</p>
-      </FadeUp>
+    <SlideShell bg="blue" sectionLabel="THEORY  /  MODEL">
+      {/* Subtle particles */}
+      <Particles quantity={15} color="#3b82f6" size={0.8} speed={0.1} className="z-0 opacity-40" />
 
-      <FadeUp delay={0.2}>
-        <div className="glass rounded-xl px-5 py-3 inline-flex items-center gap-3 mb-8">
-          <span className="text-xs tracking-[0.2em] uppercase text-amber-400/70 font-semibold">Key Insight</span>
-          <span className="text-sm text-white/60">There is a different model that excels at every task. Match the brain to the job.</span>
-        </div>
-      </FadeUp>
-
-      <StaggerChildren stagger={0.15} className="space-y-4 max-w-4xl">
-        {models.map((m, i) => (
-          <StaggerItem key={i}>
-            <div className={`glass rounded-xl p-6 border ${m.border} bg-gradient-to-r ${m.color} to-transparent`}>
-              <div className="flex items-start gap-6">
-                <div className="shrink-0">
-                  <span className={`text-[10px] tracking-[0.25em] uppercase ${m.text} font-bold`}>{m.tier}</span>
-                  <h3 className="text-xl font-bold text-white/90 mt-1">{m.name}</h3>
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-white/70 mb-1">{m.desc}</p>
-                  <p className="text-xs text-white/35">{m.detail}</p>
-                </div>
-              </div>
+      <div className="relative z-10 w-full">
+        <div className="flex items-start gap-8 mb-12">
+          {/* Big number + icon */}
+          <FadeUp delay={0.1}>
+            <div className="flex flex-col items-center gap-3 shrink-0">
+              <span className="text-8xl font-black text-blue-500/15 leading-none">01</span>
+              <motion.div
+                animate={{ rotate: [0, 5, -5, 0] }}
+                transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                <Brain className="w-12 h-12 text-blue-400/60" strokeWidth={1.2} />
+              </motion.div>
             </div>
-          </StaggerItem>
-        ))}
-      </StaggerChildren>
+          </FadeUp>
+
+          {/* Heading */}
+          <FadeUp delay={0.2}>
+            <div>
+              <h2 className="text-5xl md:text-6xl font-black tracking-tight mb-3">
+                The <span className="text-gradient-blue">Model</span>
+              </h2>
+              <p className="text-lg text-white/30 max-w-xl">
+                The underlying AI that powers every decision an agent makes.
+              </p>
+            </div>
+          </FadeUp>
+        </div>
+
+        {/* Key points as glass cards */}
+        <StaggerChildren stagger={0.1} className="grid grid-cols-2 gap-4 max-w-4xl">
+          {points.map((pt, i) => (
+            <StaggerItem key={i}>
+              <div className="glass rounded-xl p-6 border border-blue-500/10 bg-gradient-to-br from-blue-500/5 to-transparent hover:border-blue-500/20 transition-colors h-full">
+                <h3 className="text-base font-bold text-white/80 mb-2">{pt.title}</h3>
+                <p className="text-sm text-white/35 leading-relaxed">{pt.desc}</p>
+              </div>
+            </StaggerItem>
+          ))}
+        </StaggerChildren>
+      </div>
     </SlideShell>
   );
 }
